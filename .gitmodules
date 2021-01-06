@@ -1,3 +1,6 @@
 [submodule "CSC_Task5"]
 	path = CSC_Task5
 	url = https://github.com/WengKhong01/imagetest.git
+[submodule "CSC_Task7"]
+	path = CSC_Task7
+	url = https://github.com/WengKhong01/veryfi-csc.git
