@@ -6,7 +6,6 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using System.Web.Http.ModelBinding;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -29,86 +28,6 @@ namespace CSC_Task3.Controllers
 
         public AccountController()
         {
-        }
-
-        // POST api/Account/Register
-        [AllowAnonymous]
-        [Route("Register")]
-        public async Task<IHttpActionResult> Register(RegisterBindingModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                Console.WriteLine(model.GoogleCaptchaToken);
-                var isCaptchaValid = await IsCaptchaValid(model.GoogleCaptchaToken);
-
-                var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
-                if (isCaptchaValid)
-                {
-                    IdentityResult result = await UserManager.CreateAsync(user, model.Password);
-
-                    if (!result.Succeeded)
-                    {
-                        return GetErrorResult(result);
-                    }
-                    return Ok();
-                }
-                else
-                {
-                    return InternalServerError();
-                }
-            }
-            else
-            {
-                return BadRequest(ModelState);
-            }
-        }
-
-        public class CaptchaResponseViewModel
-        {
-            public bool Success { get; set; }
-
-            [JsonProperty(PropertyName = "error-codes")]
-            public IEnumerable<string> ErrorCodes { get; set; }
-
-            [JsonProperty(PropertyName = "challenge-ts")]
-            public DateTime ChallengeTime { get; set; }
-
-            public string HostName { get; set; }
-
-            public double Score { get; set; }
-
-            public string Action { get; set; }
-
-        }
-
-
-        private async Task<bool> IsCaptchaValid(string response)
-        {
-            try
-            {
-                //var Request = new HttpRequest();
-                var secret = "6LdC5PEZAAAAAI2y-AJpGp-v6s36erHH1i3TMDsm";
-                using (var client = new HttpClient())
-                {
-                    var values = new Dictionary<string, string>
-                    {
-                        {"secret", secret },
-                        {"response", response },
-                    };
-
-                    var content = new FormUrlEncodedContent(values);
-                    var verify = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
-                    var captchaResponseJson = await verify.Content.ReadAsStringAsync();
-                    var captchaResult = JsonConvert.DeserializeObject<CaptchaResponseViewModel>(captchaResponseJson);
-                    return captchaResult.Success
-                        && captchaResult.Action == "register_account"
-                        && captchaResult.Score > 0.5;
-                }
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
         }
 
         public AccountController(ApplicationUserManager userManager,
@@ -400,26 +319,78 @@ namespace CSC_Task3.Controllers
         }
 
         // POST api/Account/Register
-        //[AllowAnonymous]
-        //[Route("Register")]
-        //public async Task<IHttpActionResult> Register(RegisterBindingModel model)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
+        [AllowAnonymous]
+        [Route("Register")]
+        public async Task<IHttpActionResult> Register(RegisterBindingModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-        //    var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
+            var isCaptchaValid = await IsCaptchaValid(model.GoogleCaptchaToken);
 
-        //    IdentityResult result = await UserManager.CreateAsync(user, model.Password);
+            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
 
-        //    if (!result.Succeeded)
-        //    {
-        //        return GetErrorResult(result);
-        //    }
+            if (!isCaptchaValid)
+            {
+                return InternalServerError();
+            }
 
-        //    return Ok();
-        //}
+            IdentityResult result = await UserManager.CreateAsync(user, model.Password);
+
+            if (!result.Succeeded)
+            {
+                return GetErrorResult(result);
+            }
+            return Ok();
+        }
+
+        public class CaptchaResponseViewModel
+        {
+            public bool Success { get; set; }
+
+            [JsonProperty(PropertyName = "error-codes")]
+            public IEnumerable<string> ErrorCodes { get; set; }
+
+            [JsonProperty(PropertyName = "challenge-ts")]
+            public DateTime ChallengeTime { get; set; }
+
+            public string HostName { get; set; }
+
+            public double Score { get; set; }
+
+            public string Action { get; set; }
+
+        }
+
+        private async Task<bool> IsCaptchaValid (string response)
+        {
+            try
+            {
+                var secret = "6Lct5fEZAAAAAKSfqHWHC1yt37jirS9NIx1m1PKv";
+                using (var client = new HttpClient())
+                {
+                    var values = new Dictionary<string, string>
+                    {
+                        {"secret", secret },
+                        {"response", response },
+                    };
+
+                    var content = new FormUrlEncodedContent(values);
+                    var verify = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+                    var captchaResponseJson = await verify.Content.ReadAsStringAsync();
+                    var captchaResult = JsonConvert.DeserializeObject<CaptchaResponseViewModel>(captchaResponseJson);
+                    return captchaResult.Success
+                        && captchaResult.Action == "register_account"
+                        && captchaResult.Score > 0.5;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
 
         // POST api/Account/RegisterExternal
         [OverrideAuthentication]
@@ -435,10 +406,11 @@ namespace CSC_Task3.Controllers
             var info = await Authentication.GetExternalLoginInfoAsync();
             if (info == null)
             {
+                
                 return InternalServerError();
             }
 
-            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
+            var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
 
             IdentityResult result = await UserManager.CreateAsync(user);
             if (!result.Succeeded)

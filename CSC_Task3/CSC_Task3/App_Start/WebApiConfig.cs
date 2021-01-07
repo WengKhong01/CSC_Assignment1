@@ -5,8 +5,6 @@ using System.Net.Http;
 using System.Web.Http;
 using Microsoft.Owin.Security.OAuth;
 using Newtonsoft.Json.Serialization;
-using CSC_Task3;
-
 
 namespace CSC_Task3
 {
@@ -18,7 +16,7 @@ namespace CSC_Task3
             // Configure Web API to use only bearer token authentication.
             config.SuppressDefaultHostAuthentication();
             config.Filters.Add(new HostAuthenticationFilter(OAuthDefaults.AuthenticationType));
-            //config.Filters.Add(new CSC_Task3.Filters.RequireHttpsAttribute());
+            // config.Filters.Add(new LocalAccountsApp.Filters.RequireHttpsAttribute());
 
             // Web API routes
             config.MapHttpAttributeRoutes();

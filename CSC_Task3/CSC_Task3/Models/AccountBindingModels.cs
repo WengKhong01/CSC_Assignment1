@@ -1,9 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Net;
-using System.Net.Http;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CSC_Task3.Models
 {
@@ -86,26 +83,4 @@ namespace CSC_Task3.Models
         [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
     }
-
-    public class CaptchaModel
-    {
-        public static bool ReCaptchaPassed(string gRecaptchaResponse){
-            HttpClient httpClient = new HttpClient();
-
-            var res = httpClient.GetAsync($"https://www.google.com/recaptcha/api/siteverify?secret=your secret key no quotes&response={gRecaptchaResponse}").Result;
-
-            if (res.StatusCode != HttpStatusCode.OK)
-                return false;
-
-            string JSONres = res.Content.ReadAsStringAsync().Result;
-            dynamic JSONdata = JObject.Parse(JSONres);
-
-            if (JSONdata.success != "true")
-                return false;
-
-            return true;
-        }
-        public string GoogleCaptchaToken { get; set; }
-    }
-    
 }

@@ -1,6 +1,5 @@
-﻿function ViewModel() {
+﻿﻿function ViewModel() {
     var self = this;
-
     var tokenKey = 'accessToken';
 
     self.result = ko.observable();
@@ -9,7 +8,7 @@
     self.registerEmail = ko.observable();
     self.registerPassword = ko.observable();
     self.registerPassword2 = ko.observable();
-    self.CaptchaToken = ko.observable();
+    self.GoogleCaptchaToken = ko.observable();
 
     self.loginEmail = ko.observable();
     self.loginPassword = ko.observable();
@@ -58,17 +57,16 @@
         }).fail(showError);
     }
 
-    self.register = function () {
-        self.result('');
-        self.errors.removeAll();
+     self.register = function () {
+         self.result('');
+         self.errors.removeAll();
 
         var data = {
             Email: self.registerEmail(),
             Password: self.registerPassword(),
             ConfirmPassword: self.registerPassword2(),
-            CaptchaToken: self.CaptchaToken(),
-        };
-
+            GoogleCaptchaToken: self.GoogleCaptchaToken()
+         };
         $.ajax({
             type: 'POST',
             url: '/api/Account/Register',
@@ -76,6 +74,7 @@
             data: JSON.stringify(data)
         }).done(function (data) {
             self.result("Done!");
+            console.log('success');
         }).fail(showError);
     }
 
